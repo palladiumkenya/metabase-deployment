@@ -1,0 +1,22 @@
+# ---- Secrets & local config -------------------------------------------
+# .env holds credentials and local ports; .env.example is the tracked template.
+.env
+*.env
+!.env.example
+
+# ---- Database dumps (NEVER commit) ------------------------------------
+# These contain plaintext data-source passwords, the embedding secret key,
+# user password hashes and real email addresses. Keep them out of git.
+dumps/*
+!dumps/.gitkeep
+backups/
+*.dump
+*.sql
+*.sql.gz
+*.sql.bz2
+*.tar
+*.sha256
+
+# ---- Misc --------------------------------------------------------------
+*.log
+.DS_Store

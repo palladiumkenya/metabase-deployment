@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-17-alpine}
+    container_name: metabase-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${MB_DB_DBNAME:-metabase}
+      POSTGRES_USER: ${MB_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${MB_DB_PASS:-metabase}
+      # Used by the restore script inside the container
+      PGDATABASE: ${MB_DB_DBNAME:-metabase}
+      PGUSER: ${MB_DB_USER:-postgres}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs only when pgdata is empty (first boot) -> restores an existing dump
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+      - ./dumps:/dumps:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MB_DB_USER:-postgres} -d ${MB_DB_DBNAME:-metabase}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  metabase:
+    image: metabase/metabase:${METABASE_VERSION:-v0.64.8}
+    container_name: metabase
+    restart: unless-stopped
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_HOST: postgres
+      MB_DB_PORT: 5432
+      MB_DB_DBNAME: ${MB_DB_DBNAME:-metabase}
+      MB_DB_USER: ${MB_DB_USER:-postgres}
+      MB_DB_PASS: ${MB_DB_PASS:-metabase}
+      JAVA_TIMEZONE: ${JAVA_TIMEZONE:-UTC}
+      MB_SITE_URL: ${MB_SITE_URL:-http://localhost:3000}
+      # --- Outbound email disabled: this local copy must never reach real users ---
+      # Env-set values take precedence over the restored DB settings and appear
+      # read-only in the admin UI. 127.0.0.1:1025 has no listener -> refused.
+      MB_EMAIL_SMTP_HOST: ${MB_EMAIL_SMTP_HOST:-127.0.0.1}
+      MB_EMAIL_SMTP_PORT: ${MB_EMAIL_SMTP_PORT:-1025}
+      MB_EMAIL_SMTP_SECURITY: none
+      MB_EMAIL_SMTP_USERNAME: ""
+      MB_EMAIL_SMTP_PASSWORD: ""
+      MB_EMAIL_FROM_ADDRESS: ${MB_EMAIL_FROM_ADDRESS:-metabase-local@localhost}
+    ports:
+      - "${METABASE_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "-s", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+volumes:
+  pgdata:
