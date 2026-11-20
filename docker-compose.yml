@@ -7,6 +7,7 @@ services:
       POSTGRES_DB: ${MB_DB_DBNAME:-metabase}
       POSTGRES_USER: ${MB_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${MB_DB_PASS:-metabase}
+      TZ: ${TZ:-Africa/Nairobi}
       # Used by the restore script inside the container
       PGDATABASE: ${MB_DB_DBNAME:-metabase}
       PGUSER: ${MB_DB_USER:-postgres}
@@ -36,7 +37,8 @@ services:
       MB_DB_DBNAME: ${MB_DB_DBNAME:-metabase}
       MB_DB_USER: ${MB_DB_USER:-postgres}
       MB_DB_PASS: ${MB_DB_PASS:-metabase}
-      JAVA_TIMEZONE: ${JAVA_TIMEZONE:-UTC}
+      JAVA_TIMEZONE: ${JAVA_TIMEZONE:-Africa/Nairobi}
+      TZ: ${TZ:-Africa/Nairobi}
       MB_SITE_URL: ${MB_SITE_URL:-http://localhost:3000}
       # --- Outbound email disabled: this local copy must never reach real users ---
       # Env-set values take precedence over the restored DB settings and appear
