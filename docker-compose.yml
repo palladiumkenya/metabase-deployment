@@ -15,8 +15,9 @@ services:
       # Runs only when pgdata is empty (first boot) -> restores an existing dump
       - ./initdb:/docker-entrypoint-initdb.d:ro
       - ./dumps:/dumps:ro
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # Intentionally no `ports:` mapping -- Postgres stays off the host. Metabase
+    # reaches it as host "postgres" on the compose network, and maintenance goes
+    # through `docker compose exec postgres psql ...`.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${MB_DB_USER:-postgres} -d ${MB_DB_DBNAME:-metabase}"]
       interval: 10s
